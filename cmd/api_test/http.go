@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"math/rand"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/DTSL/golang-libraries/errors"
 	"github.com/DTSL/golang-libraries/httpjson"
@@ -33,6 +35,10 @@ func (h *httpTestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *httpTestHandler) handle(ctx context.Context, w http.ResponseWriter, r *http.Request) (err error) {
+	// generate random duration between 0 and 2 seconds
+	delay := time.Duration(rand.Intn(2001)) * time.Millisecond
+	time.Sleep(delay)
+
 	sc, resp := h.getResp(r)
 	defer h.recordStatusCodeMetric(ctx, sc)
 	err = httpjson.WriteResponse(ctx, w, sc, resp)
