@@ -1,32 +1,28 @@
+version: "3.8"
 services:
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
-    command: ["--config=/etc/otel-collector-config.yaml"]
+  alloy:
+    image: grafana/alloy:latest
     volumes:
-      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+      - ./config.alloy:/etc/alloy/config.alloy
+    command: ["run", "/etc/alloy/config.alloy"]
     ports:
-      - "4318:4318" # OTLP gRPC receiver
+      - "4317:4317"
+      - "4318:4318"
+      - "9464:9464"
 
-  prometheus:
-    image: prom/prometheus:latest
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+  mimir:
+    image: grafana/mimir:latest
     ports:
-      - "9090:9090"
+      - "9009:9009"
+    command: ["-config.file=/etc/mimir/mimir.yaml"]
+    volumes:
+      - ./mimir-data:/tmp/mimir
+      - ./mimir.yaml:/etc/mimir/mimir.yaml
 
   grafana:
     image: grafana/grafana:latest
-    container_name: grafana
     ports:
       - "3000:3000"
     environment:
+      - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
-    depends_on:
-      - prometheus
-
-volumes:
-  grafana-data:

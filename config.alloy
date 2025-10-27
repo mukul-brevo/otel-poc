@@ -1,0 +1,22 @@
+prometheus.remote_write "local" {
+  endpoint {
+    url = "http://mimir:9009/api/v1/push"
+  }
+}
+
+otelcol.exporter.prometheus "to_prometheus" {
+  forward_to = [
+    prometheus.remote_write.local.receiver,
+  ]
+}
+
+otelcol.receiver.otlp "default" {
+  grpc {}
+  http {}
+  output {
+    metrics = [otelcol.exporter.prometheus.to_prometheus.input]
+    logs = []
+    traces = []
+  }
+}
+
