@@ -5,10 +5,12 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 )
 
 type statusCodeMetric struct {
+	sc    metric.Int64Counter
 	sc2XX metric.Int64Counter
 	sc3XX metric.Int64Counter
 	sc4XX metric.Int64Counter
@@ -17,6 +19,14 @@ type statusCodeMetric struct {
 
 func newStatusCodeMetric(mp metric.MeterProvider) (m *statusCodeMetric, err error) {
 	m = new(statusCodeMetric)
+	m.sc, err = mp.Meter(appname).Int64Counter(
+		fmt.Sprintf("%s.%s", appname, "http_response_total"),
+		metric.WithDescription("Count of HTTP responses by status code"),
+		metric.WithUnit("count"),
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "2xx int64 counter")
+	}
 	m.sc2XX, err = mp.Meter(appname).Int64Counter(
 		fmt.Sprintf("%s.%s", appname, "2XX"),
 		metric.WithDescription("HTTP Traffic in 2XX requests count"),
@@ -52,7 +62,7 @@ func newStatusCodeMetric(mp metric.MeterProvider) (m *statusCodeMetric, err erro
 	return m, nil
 }
 
-func (h *statusCodeMetric) recordMetric(ctx context.Context, statusCode int) {
+func (h *statusCodeMetric) recordMetric(ctx context.Context, statusCode int, method, path string) {
 	switch {
 	case statusCode >= 200 && statusCode < 300:
 		h.sc2XX.Add(ctx, 1)
@@ -62,5 +72,12 @@ func (h *statusCodeMetric) recordMetric(ctx context.Context, statusCode int) {
 		h.sc4XX.Add(ctx, 1)
 	case statusCode >= 500 && statusCode < 600:
 		h.sc5XX.Add(ctx, 1)
+	default:
+		return
 	}
+	h.sc.Add(ctx, 1, metric.WithAttributes(
+		attribute.Int("status_code", statusCode),
+		attribute.String("method", method),
+		attribute.String("path", path),
+	))
 }

@@ -13,7 +13,7 @@ import (
 )
 
 type httpTestHandler struct {
-	recordStatusCodeMetric func(ctx context.Context, statusCode int)
+	recordStatusCodeMetric func(ctx context.Context, statusCode int, method, path string)
 }
 
 func newhttpTestHandler(mp metric.MeterProvider) (*httpTestHandler, error) {
@@ -40,7 +40,7 @@ func (h *httpTestHandler) handle(ctx context.Context, w http.ResponseWriter, r *
 	time.Sleep(delay)
 
 	sc, resp := h.getResp(r)
-	defer h.recordStatusCodeMetric(ctx, sc)
+	defer h.recordStatusCodeMetric(ctx, sc, r.Method, r.URL.Path)
 	err = httpjson.WriteResponse(ctx, w, sc, resp)
 	if err != nil {
 		return errors.Wrap(err, "write response")
