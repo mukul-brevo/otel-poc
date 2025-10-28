@@ -62,20 +62,21 @@ func newStatusCodeMetric(mp metric.MeterProvider) (m *statusCodeMetric, err erro
 	return m, nil
 }
 
-func (h *statusCodeMetric) recordMetric(ctx context.Context, statusCode int, method, path string) {
+func (h *statusCodeMetric) recordMetric(ctx context.Context, clientID int64, statusCode int, method, path string) {
 	switch {
 	case statusCode >= 200 && statusCode < 300:
-		h.sc2XX.Add(ctx, 1)
+		h.sc2XX.Add(ctx, 1, metric.WithAttributes(attribute.Int64("client_id", clientID)))
 	case statusCode >= 300 && statusCode < 400:
-		h.sc3XX.Add(ctx, 1)
+		h.sc3XX.Add(ctx, 1, metric.WithAttributes(attribute.Int64("client_id", clientID)))
 	case statusCode >= 400 && statusCode < 500:
-		h.sc4XX.Add(ctx, 1)
+		h.sc4XX.Add(ctx, 1, metric.WithAttributes(attribute.Int64("client_id", clientID)))
 	case statusCode >= 500 && statusCode < 600:
-		h.sc5XX.Add(ctx, 1)
+		h.sc5XX.Add(ctx, 1, metric.WithAttributes(attribute.Int64("client_id", clientID)))
 	default:
 		return
 	}
 	h.sc.Add(ctx, 1, metric.WithAttributes(
+		attribute.Int64("client_id", clientID),
 		attribute.Int("status_code", statusCode),
 		attribute.String("method", method),
 		attribute.String("path", path),

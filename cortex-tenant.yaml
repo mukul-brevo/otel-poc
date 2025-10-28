@@ -1,0 +1,8 @@
+listen: 0.0.0.0:8085
+target: http://mimir:9009/api/v1/push
+log_level: debug
+tenant:
+  label: client_id
+  label_remove: true # removes the 'tenant' label after extracting
+  header: X-Scope-OrgID
+  default: "0" # fallback tenant if label missing

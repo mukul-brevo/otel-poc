@@ -1,6 +1,6 @@
 prometheus.remote_write "local" {
   endpoint {
-    url = "http://mimir:9009/api/v1/push"
+    url = "http://cortex_tenant:8085/push"
   }
 }
 

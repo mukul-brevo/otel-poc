@@ -23,5 +23,5 @@ ingester:
   ring:
     replication_factor: 1
 
-# 👇 Add this section
-multitenancy_enabled: false
+# 👇 Enable multi-tenancy
+multitenancy_enabled: true

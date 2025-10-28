@@ -10,6 +10,14 @@ services:
       - "4318:4318"
       - "9464:9464"
 
+  cortex_tenant:
+    image: ghcr.io/blind-oracle/cortex-tenant:latest
+    ports:
+      - "8085:8085" # Remote write will go here
+    volumes:
+      - ./cortex-tenant.yaml:/etc/cortex-tenant.yaml
+    command: ["-config", "/etc/cortex-tenant.yaml"]
+
   mimir:
     image: grafana/mimir:latest
     ports:

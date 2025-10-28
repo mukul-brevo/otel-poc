@@ -13,7 +13,7 @@ import (
 )
 
 type httpTestHandler struct {
-	recordStatusCodeMetric func(ctx context.Context, statusCode int, method, path string)
+	recordStatusCodeMetric func(ctx context.Context, clientID int64, statusCode int, method, path string)
 }
 
 func newhttpTestHandler(mp metric.MeterProvider) (*httpTestHandler, error) {
@@ -35,12 +35,14 @@ func (h *httpTestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *httpTestHandler) handle(ctx context.Context, w http.ResponseWriter, r *http.Request) (err error) {
-	// generate random duration between 0 and 2 seconds
-	delay := time.Duration(rand.Intn(2001)) * time.Millisecond
+	// generate random duration between 0 and 500 milliseconds
+	delay := time.Duration(rand.Intn(500)) * time.Millisecond
 	time.Sleep(delay)
 
+	clientID, _ := strconv.ParseInt(r.Header.Get("Client-ID"), 10, 64)
+
 	sc, resp := h.getResp(r)
-	defer h.recordStatusCodeMetric(ctx, sc, r.Method, r.URL.Path)
+	defer h.recordStatusCodeMetric(ctx, clientID, sc, r.Method, r.URL.Path)
 	err = httpjson.WriteResponse(ctx, w, sc, resp)
 	if err != nil {
 		return errors.Wrap(err, "write response")
