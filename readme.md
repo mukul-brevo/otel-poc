@@ -1,0 +1,1 @@
+![Metrics flow](metrics_flow.png)
